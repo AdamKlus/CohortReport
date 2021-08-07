@@ -1,0 +1,6 @@
+﻿Affiliate ID,DomainID,Marketing Source ID,Name,Group,Type,Category,Language,URL,Reward Plan,Signups
+123,14,2222,CasDE,Default Source Group,Website,All/General,German,abc.com/de,5% RevShare,3
+123,22,3333,CasAT,Default Source Group,Website,All/General,German,abc.com/at,5% RevShare,145
+456,14,97,CasDE,Default Source Group,Website,All/General,German,abc.com/de,6% RevShare,12
+456,2,98,CasATnew,Default Source Group,Website,All/General,German,abc.com/at2,6% RevShare,45
+456,3,99,CasUK,Default Source Group,Website,All/General,English,abc.com/uk,6% RevShare,30
