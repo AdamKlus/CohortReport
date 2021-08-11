@@ -98,7 +98,7 @@ if __name__ == "__main__":
     # get the data folder
     folderPath = os.getcwd() + '\\data'
     processed_files = [] # nothing processed yet
-    
+
     # create dataframes
     df_db = pd.DataFrame(columns = ['Customer Reference ID', 'Marketing Source Name', 'Total Net Revenue', 'Total First Deposit Count', 'Month'])
     df_mapping = pd.DataFrame(columns = ['DomainID'])
@@ -118,6 +118,7 @@ if __name__ == "__main__":
             # if not yet processed then process and add to processed list
             if file not in processed_files:
                 processed_files.append(file)
+                
                 # we wait for Customer Report to process the month because it has domain name
                 if 'CustomerReport' in file:                    
                     df_db = df_db.append(processFiles(folderPath + "\\" + file))
@@ -125,5 +126,3 @@ if __name__ == "__main__":
                 #if all files processed generate the reports
                 if set(files).issubset(processed_files):
                     generateReports(df_db, df_mapping)
-                
-
