@@ -142,7 +142,7 @@ if __name__ == "__main__":
                         df_mapping = df_mapping.append(processMapping(folderPath + "\\" + file2))   
                         print(file2 + " added to mapping")  
 
-                # we wait for Customer Report to process the month because it has domain name
+                # we wait for Customer Report to process the month
                 if 'CustomerReport' in file:
                     processed_files.append(file)
                     processed_files.append(file.replace('CustomerReport', 'CustomerDeposits'))              
