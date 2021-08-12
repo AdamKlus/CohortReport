@@ -1,14 +1,33 @@
 import pandas as pd
 import os
 import datetime
+from datetime import timedelta
+
+# if there is gap in months
+def fillGaps(old_list):
+    old_list.sort() # just ot be sure
+    format = '%Y-%m'
+    new_list = []
+    start_date = datetime.datetime.strptime(old_list[0], format)
+    end_date = datetime.datetime.strptime(old_list[-1], format)
+    delta = timedelta(days=1)
+    # we are incremetning by day but wil get of duplicates later
+    while start_date <= end_date:
+        new_list.append(start_date.strftime("%Y-%m"))
+        start_date += delta
+    # remove duplicates
+    new_list = list(dict.fromkeys(new_list))
+    return new_list
 
 def generateReports(df_db, df_mapping):
     if df_db.empty:
         print('No data available')
 
     else:
-        # reset index
-        df_db = df_db.reset_index(drop=True)    
+        # reset index and sort by month
+        df_db = df_db.sort_values(by=['Month']).reset_index(drop=True)
+        
+        # remove 'Totals:'    
         df_db.drop(df_db.index[df_db['Customer Reference ID'] == 'Totals:'], inplace=True)
 
         # drop if no deposit and no revenue
@@ -23,13 +42,14 @@ def generateReports(df_db, df_mapping):
             domains = list(mapping.values())
         domains.append('Total')
         
-        # get cohorts
+        # get cohorts       
         df_cohorts = df_db[['Customer Reference ID', 'Month', 'Marketing Source Name']]
         # we want only firt occurence of customer id (month in which first time made deposit)
         df_cohorts = df_cohorts[df_db['Total First Deposit Count']==1].drop_duplicates(subset='Customer Reference ID', keep='first')
 
         # get columns names for reports (dynamic - depends on timescale of files) 
         timescale = df_db['Month'].drop_duplicates().tolist()
+        timescale = fillGaps(timescale)
         report_columns = []
         for monthsLater in range(1,len(timescale)):
             report_columns.append('Retained ' + str(monthsLater) + ' months later')
