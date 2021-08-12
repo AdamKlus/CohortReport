@@ -7,7 +7,7 @@ def generateReports(df_db, df_mapping):
         print('No data available')
 
     else:
-        # drop totals
+        # reset index
         df_db = df_db.reset_index(drop=True)    
         df_db.drop(df_db.index[df_db['Customer Reference ID'] == 'Totals:'], inplace=True)
 
@@ -17,9 +17,7 @@ def generateReports(df_db, df_mapping):
         
         # apply mapping
         domains = []
-        if df_mapping.empty: # if no mapping then do for all
-            df_db['Marketing Source Name'] = 'Total'
-        else:
+        if not df_mapping.empty:
             mapping = df_mapping.set_index('Name')['DomainID'].to_dict()
             df_db['Marketing Source Name'] = df_db['Marketing Source Name'].map(mapping)
             domains = list(mapping.values())
@@ -31,7 +29,7 @@ def generateReports(df_db, df_mapping):
         df_cohorts = df_cohorts[df_db['Total First Deposit Count']==1].drop_duplicates(subset='Customer Reference ID', keep='first')
 
         # get columns names for reports (dynamic - depends on timescale of files) 
-        timescale = df_db['Month'][1:].drop_duplicates().tolist()
+        timescale = df_db['Month'].drop_duplicates().tolist()
         report_columns = []
         for monthsLater in range(1,len(timescale)):
             report_columns.append('Retained ' + str(monthsLater) + ' months later')
@@ -46,6 +44,7 @@ def generateReports(df_db, df_mapping):
         #get values for the reports row by row
         for month in timescale:
             for domain in domains:
+
                 #get cohort for given domain and month
                 if domain == 'Total':
                     df_cohort = df_cohorts.loc[df_cohorts['Month'] == month, 'Customer Reference ID']
@@ -55,19 +54,20 @@ def generateReports(df_db, df_mapping):
 
                 #get values for reports column by column
                 df_temp = df_db.loc[cohort] #temp table to limit search
+                current_row = df_deposit_report.shape[0]
 
                 # month
-                df_deposit_report.loc[df_deposit_report.shape[0], 'Month'] = month
-                df_revenue_report.loc[df_revenue_report.shape[0], 'Month'] = month
+                df_deposit_report.loc[current_row, 'Month'] = month
+                df_revenue_report.loc[current_row, 'Month'] = month
 
                 # domain
-                df_deposit_report.loc[df_deposit_report.shape[0]-1, 'DomainID'] = domain          
-                df_revenue_report.loc[df_revenue_report.shape[0]-1, 'DomainID'] = domain
+                df_deposit_report.loc[current_row, 'DomainID'] = domain          
+                df_revenue_report.loc[current_row, 'DomainID'] = domain
 
                 # first time depositing and revenue 
                 df_temp2 = df_temp.loc[(df_temp['Month'] == month) & (df_temp['Total First Deposit Count'] != 0)] # firs time depositing  
-                df_deposit_report.loc[df_deposit_report.shape[0]-1, 'First Time Depositing'] = df_temp2.shape[0] # count  
-                df_revenue_report.loc[df_revenue_report.shape[0]-1, 'Total Net Revenue'] = df_temp2['Total Net Revenue'].sum() # ant theirs revenue
+                df_deposit_report.loc[current_row, 'First Time Depositing'] = df_temp2.shape[0] # count  
+                df_revenue_report.loc[current_row, 'Total Net Revenue'] = df_temp2['Total Net Revenue'].sum() # ant theirs revenue
 
                 # retained months
                 column = 3 #starting column
@@ -75,14 +75,14 @@ def generateReports(df_db, df_mapping):
                 for retainedMonth in timescale[start_month+1:]: # check only folowing months
 
                     df_temp2 = df_temp.loc[(df_temp['Month'] == retainedMonth) & (df_temp['Total Net Revenue'] != 0)] # retained if made any revenue
-                    df_deposit_report.iloc[df_deposit_report.shape[0]-1, column] = df_temp2.shape[0] # count
-                    df_revenue_report.iloc[df_revenue_report.shape[0]-1, column] = df_temp2['Total Net Revenue'].sum() # ant theirs revenue
+                    df_deposit_report.iloc[current_row, column] = df_temp2.shape[0] # count
+                    df_revenue_report.iloc[current_row, column] = df_temp2['Total Net Revenue'].sum() # ant theirs revenue
 
                     column = column + 1              
         
         # drop empty rows
-        df_deposit_report.drop(df_deposit_report.index[df_deposit_report['First Time Depositing']==0], inplace=True)
-        df_revenue_report.drop(df_revenue_report.index[df_revenue_report['Total Net Revenue']==0], inplace=True)
+        df_deposit_report = df_deposit_report[df_deposit_report['First Time Depositing']!=0]
+        df_revenue_report = df_revenue_report[df_revenue_report['Total Net Revenue']!=0]
 
         # save reports
         deposit_path = os.getcwd() + '\\reports\\DepositsReport_{}.csv'.format(datetime.date.today())
