@@ -1,5 +1,5 @@
 import pandas as pd
-import os
+import os, time
 from bi import generateReports
 
 def processFiles(file, file2):
@@ -39,7 +39,7 @@ if __name__ == "__main__":
         for file in files:
             # if not yet processed
             if file not in processed_files:
-
+                
                 # process mapping first
                 for file2 in files:
                     if ('MarketingSourceMapping' in file2) and (file2 not in processed_files):
@@ -53,15 +53,19 @@ if __name__ == "__main__":
 
                 # we wait for Customer Report to process the month
                 if 'CustomerReport' in file:
-                    other_file = file.replace('CustomerReport', 'CustomerDeposits')   
-                    processed_files.append(file)
-                    processed_files.append(other_file)
-                    #process and append to db           
-                    df_db = df_db.append(processFiles(folderPath + "\\" + file, folderPath + "\\" + other_file))
-                    print(file + " added to db")
-                    print(other_file + " added to db")
+                    other_file = file.replace('CustomerReport', 'CustomerDeposits') 
+                    # but if Deposit Report is not there do nothing
+                    if os.path.exists(folderPath + "\\" + other_file):  
+                        processed_files.append(file)
+                        processed_files.append(other_file)
+                        #process and append to db          
+                        df_db = df_db.append(processFiles(folderPath + "\\" + file, folderPath + "\\" + other_file))
+                        print(file + " added to db")
+                        print(other_file + " added to db")
+                    else:
+                        continue
                     
-                #if all files processed generate the reports
-                if set(files).issubset(processed_files):     
-                    if generateReports(df_db, df_mapping) == True:
-                        print("Checking for new files at " + folderPath)
+                # #if all files processed generate the reports
+                # if set(files).issubset(processed_files):     
+                if generateReports(df_db, df_mapping) == True:
+                    print("Checking for new files at " + folderPath)
