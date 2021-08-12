@@ -16,13 +16,14 @@ def generateReports(df_db, df_mapping):
         df_db.drop(df_db.index[(df_db['Total Net Revenue'] == 0) & (df_db['Total First Deposit Count'] == 0)], inplace=True)
         
         # apply mapping
+        domains = []
         if df_mapping.empty: # if no mapping then do for all
-            df_db['Marketing Source Name'] = 'All'
-            domains = ['All']
+            df_db['Marketing Source Name'] = 'Total'
         else:
             mapping = df_mapping.set_index('Name')['DomainID'].to_dict()
             df_db['Marketing Source Name'] = df_db['Marketing Source Name'].map(mapping)
             domains = list(mapping.values())
+        domains.append('Total')
         
         # get cohorts
         df_cohorts = df_db[['Customer Reference ID', 'Month', 'Marketing Source Name']]
@@ -45,9 +46,11 @@ def generateReports(df_db, df_mapping):
         #get values for the reports row by row
         for month in timescale:
             for domain in domains:
-
                 #get cohort for given domain and month
-                df_cohort = df_cohorts.loc[(df_cohorts['Month'] == month) & (df_cohorts['Marketing Source Name'] == domain), 'Customer Reference ID']
+                if domain == 'Total':
+                    df_cohort = df_cohorts.loc[df_cohorts['Month'] == month, 'Customer Reference ID']
+                else:
+                    df_cohort = df_cohorts.loc[(df_cohorts['Month'] == month) & (df_cohorts['Marketing Source Name'] == domain), 'Customer Reference ID']
                 cohort = df_cohort.to_list()
 
                 #get values for reports column by column
@@ -75,7 +78,7 @@ def generateReports(df_db, df_mapping):
                     df_deposit_report.iloc[df_deposit_report.shape[0]-1, column] = df_temp2.shape[0] # count
                     df_revenue_report.iloc[df_revenue_report.shape[0]-1, column] = df_temp2['Total Net Revenue'].sum() # ant theirs revenue
 
-                    column = column + 1               
+                    column = column + 1              
         
         # drop empty rows
         df_deposit_report.drop(df_deposit_report.index[df_deposit_report['First Time Depositing']==0], inplace=True)
