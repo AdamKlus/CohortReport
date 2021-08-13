@@ -2,18 +2,18 @@ import pandas as pd
 import os
 from bi import generateReports
 
-def processFiles(file, file2):
+def processFiles(files):
     # get reports date
-    filename = os.path.basename(file)
+    filename = os.path.basename(files[0])
     reportDate = filename.split('.')[0].split('c_')[0][2:]
 
-    # get revenue data
-    df_customerReport = pd.read_csv(file)
-    df_customerReport = df_customerReport.dropna(how="all")[['Customer Reference ID', 'Marketing Source Name', 'Total Net Revenue']]
-
     # get deposit data
-    df_customerDeposits = pd.read_csv(file2)
+    df_customerDeposits = pd.read_csv(files[0])
     df_customerDeposits = df_customerDeposits.dropna(how="all")[['Total First Deposit Count']]
+
+    # get revenue data
+    df_customerReport = pd.read_csv(files[1])
+    df_customerReport = df_customerReport.dropna(how="all")[['Customer Reference ID', 'Marketing Source Name', 'Total Net Revenue']]
 
     #merge both together and add month column
     df_merged = pd.concat([df_customerReport, df_customerDeposits], axis=1)
@@ -50,20 +50,26 @@ if __name__ == "__main__":
                         # append to mapping db
                         df_mapping = df_mapping.append(df_temp)   
                         print(file2 + " added to mapping")  
+                        if generateReports(df_db, df_mapping) == True:
+                            print("Checking for new files at " + folderPath)
 
-                # we wait for Customer Report to process the month
-                if 'CustomerReport' in file:
-                    other_file = file.replace('CustomerReport', 'CustomerDeposits') 
-                    # but if Deposit Report is not there do nothing
+                #then data files
+                if file not in processed_files:
+                    if 'CustomerReport' in file:
+                        other_file = file.replace('CustomerReport', 'CustomerDeposits')
+                    elif 'CustomerDeposits' in file:
+                        other_file = file.replace('CustomerDeposits', 'CustomerReport')
+                    
+                    # we wait for both files to process the month
                     if os.path.exists(folderPath + "\\" + other_file):  
                         processed_files.append(file)
                         processed_files.append(other_file)
-                        #process and append to db          
-                        df_db = df_db.append(processFiles(folderPath + "\\" + file, folderPath + "\\" + other_file))
+                        #process and append to db    
+                        sorted_files = [folderPath + "\\" + file, folderPath + "\\" + other_file]
+                        sorted_files.sort() # deposit first    
+                        df_db = df_db.append(processFiles(sorted_files))
                         print(file + " added to db")
                         print(other_file + " added to db")
-                    else:
-                        continue
- 
-                if generateReports(df_db, df_mapping) == True:
-                    print("Checking for new files at " + folderPath)
+    
+                        if generateReports(df_db, df_mapping) == True:
+                            print("Checking for new files at " + folderPath)
