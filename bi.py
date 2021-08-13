@@ -5,18 +5,16 @@ from datetime import timedelta
 
 # if there is gap in months
 def fillGaps(old_list):
-    old_list.sort() # just ot be sure
+    old_list.sort() # just to be sure
     format = '%Y-%m'
     new_list = []
     start_date = datetime.datetime.strptime(old_list[0], format)
     end_date = datetime.datetime.strptime(old_list[-1], format)
-    delta = timedelta(days=1)
-    # we are incremetning by day but wil get of duplicates later
+    delta = timedelta(days=1) # we are incremetning by day but will get rid of duplicates later
     while start_date <= end_date:
         new_list.append(start_date.strftime("%Y-%m"))
         start_date += delta
-    # remove duplicates
-    new_list = list(dict.fromkeys(new_list))
+    new_list = list(dict.fromkeys(new_list)) # remove duplicates
     return new_list
 
 def generateReports(df_db, df_mapping):
@@ -26,7 +24,7 @@ def generateReports(df_db, df_mapping):
     else:
         # reset index and sort by month
         df_db = df_db.sort_values(by=['Month']).reset_index(drop=True)
-        
+
         # remove 'Totals:'    
         df_db.drop(df_db.index[df_db['Customer Reference ID'] == 'Totals:'], inplace=True)
 
