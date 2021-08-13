@@ -1,5 +1,5 @@
 import pandas as pd
-import os, time
+import os
 from bi import generateReports
 
 def processFiles(file, file2):
@@ -64,8 +64,6 @@ if __name__ == "__main__":
                         print(other_file + " added to db")
                     else:
                         continue
-                    
-                # #if all files processed generate the reports
-                # if set(files).issubset(processed_files):     
+ 
                 if generateReports(df_db, df_mapping) == True:
                     print("Checking for new files at " + folderPath)
