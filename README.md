@@ -27,7 +27,7 @@ Create a data model, set up data transformations to generate the two cohort repo
 
 * Marketing Source Files (to map “DomainID” against revenue, deposits files to identify where the customer came from)   
 
-Let’s also assume that all the monthly reports available cover the all-time performance of this iGaming operator and its customers.  
+Let’s also assume that all the monthly reports available cover the all-time performance of this company and its customers.  
 
 # Source Data Naming Convention
 Each file will be named consistently such as   
