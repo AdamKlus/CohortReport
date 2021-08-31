@@ -5,7 +5,7 @@ If there is no mapping file it will generate reports for all domains.
 If there is no data files it will do nothing.
 
 # Problem  
-As a company we would need to identify how many players were acquired (converted) in a month and how their activity as well as revenues are retained during the course of their lifetime with a gaming operator we sent traffic to.  
+As a company we would need to identify how many players were acquired (converted) in a month and how their activity as well as revenues are retained during the course of their lifetime with a service operator we sent traffic to.  
 
 # Solution  
 A set of two cohort reports based on sales data which show:  
